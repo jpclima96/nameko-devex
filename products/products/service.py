@@ -26,9 +26,19 @@ class ProductsService:
         return schemas.Product(many=True).dump(products).data
 
     @rpc
+    def list_ids(self):
+        products = self.storage.list_ids()
+        return schemas.Product(many=True).dump(products).data
+
+    @rpc
     def create(self, product):
         product = schemas.Product(strict=True).load(product).data
         self.storage.create(product)
+
+    @rpc
+    def delete(self, product_id):
+        product = self.storage.delete(product_id)
+        return schemas.Product().dump(product).data
 
     @event_handler('orders', 'order_created')
     def handle_order_created(self, payload):

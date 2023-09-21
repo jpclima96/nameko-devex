@@ -37,25 +37,44 @@ class StorageWrapper:
         }
 
     def get(self, product_id):
+        # validate if the product_id exists
+        self.__validate_if_product_exists(product_id)
+
+        # get the product
         product = self.client.hgetall(self._format_key(product_id))
-        if not product:
-            raise NotFound('Product ID {} does not exist'.format(product_id))
-        else:
-            return self._from_hash(product)
+        return self._from_hash(product)
 
     def list(self):
         keys = self.client.keys(self._format_key('*'))
         for key in keys:
             yield self._from_hash(self.client.hgetall(key))
 
+    def list_ids(self):
+        keys = self.client.keys(self._format_key('*'))
+        return keys
+
     def create(self, product):
         self.client.hmset(
             self._format_key(product['id']),
             product)
 
+    def delete(self, product_id):
+        # validate if the product_id exists
+        self.__validate_if_product_exists(product_id)
+
+        # delete the product
+        keys = list(self.client.hgetall(self._format_key(product_id)).keys())
+        self.client.hdel(self._format_key(product_id), *keys)
+        return {"id": product_id}
+
     def decrement_stock(self, product_id, amount):
         return self.client.hincrby(
             self._format_key(product_id), 'in_stock', -amount)
+
+    def __validate_if_product_exists(self, product_id):
+        product = self.client.hkeys(self._format_key(product_id))
+        if not product:
+            raise NotFound('Product ID {} does not exist'.format(product_id))
 
 
 class Storage(DependencyProvider):

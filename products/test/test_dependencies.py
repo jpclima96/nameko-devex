@@ -28,6 +28,18 @@ def test_get(storage, products):
     assert 11 == product['in_stock']
 
 
+def test_delete(storage, products):
+    product_id_to_delete = 'LZ129'
+    product = storage.delete(product_id_to_delete)
+    assert product_id_to_delete == product['id']
+
+
+def test_delete_fails_on_not_found(storage):
+    with pytest.raises(storage.NotFound) as exc:
+        storage.delete(2)
+    assert 'Product ID 2 does not exist' == exc.value.args[0]
+
+
 def test_list(storage, products):
     listed_products = storage.list()
     assert (
