@@ -32,6 +32,21 @@ def test_get_product_fails_on_not_found(service_container):
             get(111)
 
 
+def test_delete_product(create_product, service_container):
+    stored_product = create_product()
+
+    with entrypoint_hook(service_container, 'delete') as delete:
+        loaded_product = delete(stored_product['id'])
+
+    assert stored_product['id'] == loaded_product['id']
+
+
+def test_delete_product_fails_on_not_found(service_container):
+    with pytest.raises(NotFound):
+        with entrypoint_hook(service_container, 'delete') as delete:
+            delete(111)
+
+
 def test_list_products(products, service_container):
 
     with entrypoint_hook(service_container, 'list') as list_:
@@ -40,7 +55,7 @@ def test_list_products(products, service_container):
     assert products == sorted(listed_products, key=lambda p: p['id'])
 
 
-def test_list_productis_when_empty(service_container):
+def test_list_products_when_empty(service_container):
 
     with entrypoint_hook(service_container, 'list') as list_:
         listed_products = list_()

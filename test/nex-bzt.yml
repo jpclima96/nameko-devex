@@ -64,7 +64,12 @@ scenarios:
         product_key: $.id
         default: NOT_FOUND
 
-    # 3. Create Orders
+    - if: '"${product_key}" == "NOT_FOUND"'
+      then:
+        - action: continue
+
+
+      # 3. Create Orders
     - url: /orders
       label: orders-create
       think-time: uniform(0s, 0s)
@@ -108,7 +113,27 @@ scenarios:
     - if: '"${order_id}" == "NOT_FOUND"'
       then:
         - action: continue
-  
+
+    # 5. List Orders
+    - url: /orders
+      label: orders-list
+      think-time: uniform(0s, 0s)
+      method: GET
+
+      assert:
+        - contains:
+            - 200
+          subject: http-code
+          not: false
+      extract-jsonpath:
+        orders: $
+        default: NOT_FOUND
+
+    - if: '"${orders}" == "NOT_FOUND"'
+      then:
+        - action: continue
+
+
 reporting:
 - module: final-stats
   dump-xml: stats.xml
